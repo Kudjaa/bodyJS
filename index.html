@@ -25,13 +25,30 @@
 		//Looking for each <if> in the body and execute the following code for each
 		$("if").each(function() {
 			//We store the content of the <if> and store each line as an array, then removing the empty lines
-			store = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
+			base = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
 			//Declaring all the array to know what this line is. 
 			//example: "type[]" determine if the instruction is a if, elseif or else, 
 			//          or "nothing" (nothing is when it's not a condition but the code to actually execute)
 			const type = [];
 			const append = [];
 			const value = [];
+
+
+
+const store = [];
+let current = [];
+//Grouping multiple lines if this happens
+for (let i = 0; i < base.length; i++) {
+    if(base[i].slice(0, 1) == "@"){
+        if(current.length) store.push(current.join(''))
+        current = []
+        store.push(base[i]);
+    } else if (base[i].slice(0, 1) == "<") {
+       current.push(base[i])
+    }
+}
+console.log(store)
+
 
 			//A loop for every lines
 			for (let i = 0; i < store.length; i++) {
@@ -99,11 +116,14 @@
 
 	<if>
 		@if h == "Hello"
-		<p>2222</p>
-		@elseif h == "Hello"
-		<p>4444</p>
-		@else 7777
-		<p>8888</p>
+		<p>first is working</p>
+		<p>first is working</p>
+		<p>first is working</p>
+		<p>first is working</p>
+		@elseif h == "goodbye"
+		<p>second is working</p>
+		@else h == "Hello"
+		<p>third is working</p>
 	</if>
 
 
