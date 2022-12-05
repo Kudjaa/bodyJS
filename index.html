@@ -21,7 +21,7 @@
 		})
 	}
 
-	function test() {
+	function ifblock() {
 		//Looking for each <if> in the body and execute the following code for each
 		$("if").each(function() {
 			//We store the content of the <if> and store each line as an array, then removing the empty lines
@@ -47,7 +47,6 @@ for (let i = 0; i < base.length; i++) {
        current.push(base[i])
     }
 }
-console.log(store)
 
 
 			//A loop for every lines
@@ -88,6 +87,7 @@ console.log(store)
 				}
 				
 			}
+
 			
 			//Putting everything together in a string
 			final = "if(" + value[0] + ") {$(this).after('" + append[1] + "');}"
@@ -100,11 +100,25 @@ console.log(store)
 				}
 			}
 			//Now that the full condition is stored in the string, we can execute it.. but it's not working
-			console.log(final);
 			eval(final);
 			$(this).remove();
 		})
 
+	}
+
+	function forblock() {
+		$("for").each(function() {
+			forloop = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
+
+			result = "";
+for (let i = 1; i < forloop.length; i++) {
+	result+= forloop[i];
+}
+
+			finstr = "for (" + forloop[0].split("@")[1].replaceAll("&lt;", "<") + ") {$(this).after('" + result + "')}";
+			eval(finstr);
+			$(this).remove();
+		})
 	}
 
 		var h = "Hello";
@@ -112,7 +126,7 @@ console.log(store)
 
 	</script>
 
-<body onload="variable(), test()">
+<body onload="variable(), ifblock(), forblock()">
 
 	<if>
 		@if h == "Hello"
@@ -120,11 +134,16 @@ console.log(store)
 		<p>first is working</p>
 		<p>first is working</p>
 		<p>first is working</p>
-		@elseif h == "goodbye"
+		@elseif h == "Hekllo"
 		<p>second is working</p>
 		@else h == "Hello"
 		<p>third is working</p>
 	</if>
+
+	<for>
+		@let index = 0; index < 6; index++
+		<p>lol</p>
+	</for>
 
 
 
