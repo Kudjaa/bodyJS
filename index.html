@@ -4,23 +4,24 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
+	<!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"> -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+	<!-- <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script> -->
 </head>
 
 <script>
-	function variable() {
+	function variable(prefix, length) {
 		//Looking for every DOM in the body
 		$("body *").each(function() {
 			//I want to make use of variables in HTML by the prefix ".." example : <p>..str</p>
-			if($(this).text().substr(0, 2) == "..") {
+			if($(this).text().substr(0, length) == prefix) {
 				//Removing the ".." so the only thing left is the actual name of the variable we want to use
-				str = $(this).html().slice(2);
+				str = $(this).html().slice(length);
 				//Replace the content of the DOM we've been checking if its content is starting by ".."
 				$(this).html(eval(str));
 			}
 		})
 	}
-
 	function ifblock() {
 		//Looking for each <if> in the body and execute the following code for each
 		$("if").each(function() {
@@ -36,17 +37,25 @@
 
 
 const store = [];
-let current = [];
-//Grouping multiple lines if this happens
+let current = "";
+// Grouping multiple lines if this happens
 for (let i = 0; i < base.length; i++) {
     if(base[i].slice(0, 1) == "@"){
         if(current.length) store.push(current.join(''))
-        current = []
+        current = [];
         store.push(base[i]);
     } else if (base[i].slice(0, 1) == "<") {
-       current.push(base[i])
+		current.push(base[i])
     }
 }
+// In case there's one last line stuck in the current variable, we have to push it too. And join it if needed
+if(current != "") {
+	if (current.constructor == Array) {
+		 newc = current.join('');
+	}
+	store.push(newc);
+}
+
 
 
 			//A loop for every lines
@@ -99,58 +108,218 @@ for (let i = 0; i < base.length; i++) {
 					final+= "else {$(this).after('" + append[after] + "');}"
 				}
 			}
-			//Now that the full condition is stored in the string, we can execute it.. but it's not working
 			eval(final);
 			$(this).remove();
 		})
 
 	}
-
 	function forblock() {
 		$("for").each(function() {
 			forloop = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
+			console.log(forloop);
 
-			result = "";
-for (let i = 1; i < forloop.length; i++) {
-	result+= forloop[i];
-}
+			
+			forcon = forloop[0].split("@")[1];
+			forcon = forcon.replaceAll("&lt;", "<");
+			forloop = forloop.slice(1);
+			forloop = forloop.join('');
 
-			finstr = "for (" + forloop[0].split("@")[1].replaceAll("&lt;", "<") + ") {$(this).after('" + result + "')}";
+			if (forcon.includes("..")) {
+				dotif = forcon.substring(dotif.indexOf("..") + 1, dotif.lastIndexOf(";"));
+				forcon.replace(dotif, "eval(" + dotif + ")");
+			}
+			
+			$(this).after('<div id="remove"></div>');
+			finstr = "for (" + forcon + ") {$('#remove').append('" + forloop + "')}";
 			eval(finstr);
 			$(this).remove();
+
+			$("#remove *").contents().each(function() {
+				if($(this).text().includes("..")) {
+					str = $(this).text().replaceAll("..", "")
+					$(this).html(eval(str));
+				}
+			})
+			var cnt = $("#remove").contents();
+$("#remove").replaceWith(cnt);
 		})
 	}
+	function draggable() {
+// Found on Stackoverflow, not made by me: https://stackoverflow.com/questions/2424191/how-do-i-make-an-element-draggable-in-jquery
+		function handle_mousedown(e){
 
-		var h = "Hello";
-		var w = "World!";
+window.my_dragging = {};
+my_dragging.pageX0 = e.pageX;
+my_dragging.pageY0 = e.pageY;
+my_dragging.elem = this;
+my_dragging.offset0 = $(this).offset();
+
+function handle_dragging(e){
+	var left = my_dragging.offset0.left + (e.pageX - my_dragging.pageX0);
+	var top = my_dragging.offset0.top + (e.pageY - my_dragging.pageY0);
+	$(my_dragging.elem)
+	.offset({top: top, left: left});
+}
+
+function handle_mouseup(e){
+	$('body')
+	.off('mousemove', handle_dragging)
+	.off('mouseup', handle_mouseup);
+}
+
+$('body')
+.on('mouseup', handle_mouseup)
+.on('mousemove', handle_dragging);
+}
+
+$('.b').mousedown(handle_mousedown);
+
+	}
+
+		
+	
+
+	item = [
+		"bio",
+		"social",
+		"languages",
+		"games"
+	];
+	bio = "blabla";
+	social = [
+		"github",
+		"dribbble"
+	];
+	link = [
+		"http",
+		'http'
+	];
+	languages = [
+		"french",
+		"english"
+	];
+	games = [
+		"League of Legends",
+		"Minecraft"
+	];
+
+	let h = "hello";
+	let w = "world";
 
 	</script>
 
-<body onload="variable(), ifblock(), forblock()">
 
-	<if>
-		@if h == "Hello"
-		<p>first is working</p>
-		<p>first is working</p>
-		<p>first is working</p>
-		<p>first is working</p>
-		@elseif h == "Hekllo"
-		<p>second is working</p>
-		@else h == "Hello"
-		<p>third is working</p>
-	</if>
-
-	<for>
-		@let index = 0; index < 6; index++
-		<p>lol</p>
-	</for>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
 
+	* { user-select: none; padding: 0; margin: 0;font-family: 'Poppins';}
+	.flex {
+		display: flex;
+	}
+	.center {
+		align-items: center;
+		justify-content: center;
+	}
+	body {
+		background: #121212;
+		min-height: 100vh;
+		overflow: hidden;
+	}
+
+	.page {
+		background: white;
+		width: calc(100vw - 300px);
+		height: calc(100vh - 200px);
+	}
+	.side {
+		z-index: 1;
+		background-color: #1E1E1E;
+		border: 1px solid #292929;
+		color: white;
+		width: 300px;
+		height: 450px;
+		padding: 20px;
+		position: relative;
+		top: -30px;
+		left: -30px;
+		align-items: center;
+		flex-direction: column;
+		border-radius: 10px;
+		box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.43);
+		transform: scale(1, 1);
+		transition: 0.3s;
+	}
+	.side:hover {
+		transform: scale(1.05, 1.05);
+	}
+	.side img {
+		width: 200px;
+		pointer-events: none;
+	}
+	.item {
+		background-color: #303030;
+		padding: 10px;
+		border-radius: 4px;
+		margin: 4px 0;
+	}
+
+	.item p {
+		font-size : 12px;
+	}
+
+	.items {
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		overflow: scroll;
+	}
+
+	.items::-webkit-scrollbar {
+    display: none; /* for Chrome, Safari, and Opera */
+}
+	
+</style>
 
 
 
-<p>..h</p>
-<p>..w</p>
+<body class="flex center" onload="ifblock(), variable('..', 2), forblock(), draggable()">
+<div style="display: none;">
+	<hr>
+</div>
+
+<div class="page flex">
+	<div class=" b">
+		<div class="side flex">
+			<img src="logo.png" alt="the logo">
+			<h2>Name</h2>
+				<div class="items">
+					<for>
+						@let i = 0; i < item.length; i++
+						<div class="item">
+							<h3>..item[' + i + ']</h3>
+							<hr>
+							<div class="flex">
+								<p>subtext</p>
+							</div>
+						</div>
+					</for>
+				</div>
+		</div>
+	</div>
+	<div class="main">
+
+		<if>
+			@if h == "heello"
+			<p>Kudja</p>
+			@else
+			<p>Kudja</p>
+		</if>
+	</div>
+</div>
+
+
 
 </body>
 
