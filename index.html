@@ -4,146 +4,13 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
-	<!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"> -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-	<!-- <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script> -->
+	<script src="variable.js"></script>
+	<script src="ifblock.js"></script>
+	<script src="forblock.js"></script>
 </head>
 
 <script>
-	function variable(prefix, length) {
-		//Looking for every DOM in the body
-		$("body *").each(function() {
-			//I want to make use of variables in HTML by the prefix ".." example : <p>..str</p>
-			if($(this).text().substr(0, length) == prefix) {
-				//Removing the ".." so the only thing left is the actual name of the variable we want to use
-				str = $(this).html().slice(length);
-				//Replace the content of the DOM we've been checking if its content is starting by ".."
-				$(this).html(eval(str));
-			}
-		})
-	}
-	function ifblock() {
-		//Looking for each <if> in the body and execute the following code for each
-		$("if").each(function() {
-			//We store the content of the <if> and store each line as an array, then removing the empty lines
-			base = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
-			//Declaring all the array to know what this line is. 
-			//example: "type[]" determine if the instruction is a if, elseif or else, 
-			//          or "nothing" (nothing is when it's not a condition but the code to actually execute)
-			const type = [];
-			const append = [];
-			const value = [];
-
-
-
-const store = [];
-let current = "";
-// Grouping multiple lines if this happens
-for (let i = 0; i < base.length; i++) {
-    if(base[i].slice(0, 1) == "@"){
-        if(current.length) store.push(current.join(''))
-        current = [];
-        store.push(base[i]);
-    } else if (base[i].slice(0, 1) == "<") {
-		current.push(base[i])
-    }
-}
-// In case there's one last line stuck in the current variable, we have to push it too. And join it if needed
-if(current != "") {
-	if (current.constructor == Array) {
-		 newc = current.join('');
-	}
-	store.push(newc);
-}
-
-
-
-			//A loop for every lines
-			for (let i = 0; i < store.length; i++) {
-
-				//Detect if the line is if
-				if(store[i].slice(0, 3) == "@if") {
-					type.push("if");
-					append.push("nothing");
-					value.push(store[i].split("@if ")[1]);
-
-					//Detect if the line is elseif
-				} else if(store[i].slice(0, 7) == "@elseif") {
-					type.push("elseif");
-					append.push("nothing");
-					value.push(store[i].split("@elseif ")[1]);
-
-					//Detect if the line is else
-				} else if(store[i].slice(0, 5) == "@else") {
-					type.push("else");
-					append.push("nothing");
-					value.push(store[i].split("@else ")[1]);
-
-					//In this case the line is not a condition but the HTML line we want to append
-				} else {
-					type.push("append");
-					append.push(store[i]);
-					value.push("nothing");
-				}
-			}
-
-			//Trying to know how many "elseif" there is in the <if> HTML block
-			var count = 0;
-			for (let i = 0; i < store.length; i++) {
-				if(type[i] == "elseif") {
-					count++;
-
-				}
-				
-			}
-
-			
-			//Putting everything together in a string
-			final = "if(" + value[0] + ") {$(this).after('" + append[1] + "');}"
-			for (let i = 0; i < store.length; i++) {
-				after = i + 1
-				if(type[i] == "elseif") {
-					final+= "else if (" + value[i] + ") {$(this).after('" + append[after] + "');}" 
-				} else if(type[i] == "else") {
-					final+= "else {$(this).after('" + append[after] + "');}"
-				}
-			}
-			eval(final);
-			$(this).remove();
-		})
-
-	}
-	function forblock() {
-		$("for").each(function() {
-			forloop = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
-			console.log(forloop);
-
-			
-			forcon = forloop[0].split("@")[1];
-			forcon = forcon.replaceAll("&lt;", "<");
-			forloop = forloop.slice(1);
-			forloop = forloop.join('');
-
-			if (forcon.includes("..")) {
-				dotif = forcon.substring(dotif.indexOf("..") + 1, dotif.lastIndexOf(";"));
-				forcon.replace(dotif, "eval(" + dotif + ")");
-			}
-			
-			$(this).after('<div id="remove"></div>');
-			finstr = "for (" + forcon + ") {$('#remove').append('" + forloop + "')}";
-			eval(finstr);
-			$(this).remove();
-
-			$("#remove *").contents().each(function() {
-				if($(this).text().includes("..")) {
-					str = $(this).text().replaceAll("..", "")
-					$(this).html(eval(str));
-				}
-			})
-			var cnt = $("#remove").contents();
-$("#remove").replaceWith(cnt);
-		})
-	}
 	function draggable() {
 // Found on Stackoverflow, not made by me: https://stackoverflow.com/questions/2424191/how-do-i-make-an-element-draggable-in-jquery
 		function handle_mousedown(e){
@@ -173,11 +40,7 @@ $('body')
 }
 
 $('.b').mousedown(handle_mousedown);
-
-	}
-
-		
-	
+}
 
 	item = [
 		"bio",
@@ -285,31 +148,16 @@ $('.b').mousedown(handle_mousedown);
 
 
 <body class="flex center" onload="ifblock(), variable('..', 2), forblock(), draggable()">
-<div style="display: none;">
-	<hr>
-</div>
-
-<div class="page flex">
-	<div class=" b">
-		<div class="side flex">
-			<img src="logo.png" alt="the logo">
-			<h2>Name</h2>
-				<div class="items">
-					<for>
-						@let i = 0; i < item.length; i++
-						<div class="item">
-							<h3>..item[' + i + ']</h3>
-							<hr>
-							<div class="flex">
-								<p>subtext</p>
-							</div>
-						</div>
-					</for>
-				</div>
+	<for>
+		@let i = 0; i < item.length; i++
+		<div class="item">
+			<h3>..item[' + i + ']</h3>
+			<hr>
+			<div class="flex">
+				<p>subtext</p>
+			</div>
 		</div>
-	</div>
-	<div class="main">
-
+	</for>
 		<if>
 			@if h == "heello"
 			<p>Kudja</p>
