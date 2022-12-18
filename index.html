@@ -5,168 +5,162 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-	<script src="variable.js"></script>
-	<script src="ifblock.js"></script>
-	<script src="forblock.js"></script>
 </head>
 
 <script>
-	function draggable() {
-// Found on Stackoverflow, not made by me: https://stackoverflow.com/questions/2424191/how-do-i-make-an-element-draggable-in-jquery
-		function handle_mousedown(e){
+	function variable(prefix, length) {
+		//Looking for every DOM in the body
+		$("body *").each(function() {
+			//I want to make use of variables in HTML by the prefix ".." example : <p>..str</p>
+			if($(this).text().substr(0, length) == prefix) {
+				//Removing the ".." so the only thing left is the actual name of the variable we want to use
+				str = $(this).html().slice(length);
+				//Replace the content of the DOM we've been checking if its content is starting by ".."
+				$(this).html(eval(str));
+			}
+		})
+	}
+	function ifblock(arg) {
 
-window.my_dragging = {};
-my_dragging.pageX0 = e.pageX;
-my_dragging.pageY0 = e.pageY;
-my_dragging.elem = this;
-my_dragging.offset0 = $(this).offset();
+		base = $(arg).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
+		const type = [];
+		const append = [];
+		const value = [];
+		
+		
+		
+		const store = [];
+		let current = "";
+		// Grouping multiple lines if this happens
+		for (let i = 0; i < base.length; i++) {
+			if(base[i].slice(0, 1) == "@"){
+				if(current.length) store.push(current.join(''))
+				current = [];
+				store.push(base[i]);
+			} else if (base[i].slice(0, 1) == "<") {
+				current.push(base[i])
+			}
+		}
+		// In case there's one last line stuck in the current variable, we have to push it too. And join it if needed
+		if(current != "") {
+			if (current.constructor == Array) {
+				newc = current.join('');
+			}
+			store.push(newc);
+		}
+		
 
-function handle_dragging(e){
-	var left = my_dragging.offset0.left + (e.pageX - my_dragging.pageX0);
-	var top = my_dragging.offset0.top + (e.pageY - my_dragging.pageY0);
-	$(my_dragging.elem)
-	.offset({top: top, left: left});
-}
 
-function handle_mouseup(e){
-	$('body')
-	.off('mousemove', handle_dragging)
-	.off('mouseup', handle_mouseup);
-}
+			//A loop for every lines
+			for (let i = 0; i < store.length; i++) {
 
-$('body')
-.on('mouseup', handle_mouseup)
-.on('mousemove', handle_dragging);
-}
+				//Detect if the line is if
+				if(store[i].slice(0, 3) == "@if") {
+					type.push("if");
+					append.push("nothing");
+					value.push(store[i].split("@if ")[1]);
+				}
+					//Detect if the line is elseif
+				else if(store[i].slice(0, 7) == "@elseif") {
+					type.push("elseif");
+					append.push("nothing");
+					value.push(store[i].split("@elseif ")[1]);
+				}
+					//Detect if the line is else
+				else if(store[i].slice(0, 5) == "@else") {
+					type.push("else");
+					append.push("nothing");
+					value.push(store[i].split("@else ")[1]);
+				}
+					//In this case the line is not a condition but the HTML line we want to append
+				else {
+					type.push("append");
+					append.push(store[i]);
+					value.push("nothing");
+				}
+			}
 
-$('.b').mousedown(handle_mousedown);
-}
+			//Trying to know how many "elseif" there is in the <if> HTML block
+			var count = 0;
+			for (let i = 0; i < store.length; i++) {
+				if(type[i] == "elseif") {
+					count++;
 
-	item = [
-		"bio",
-		"social",
-		"languages",
-		"games"
-	];
-	bio = "blabla";
-	social = [
-		"github",
-		"dribbble"
-	];
-	link = [
-		"http",
-		'http'
-	];
-	languages = [
-		"french",
-		"english"
-	];
-	games = [
-		"League of Legends",
-		"Minecraft"
-	];
+				}
+				
+			}
+			
+			//Putting everything together in a string
+			final = "if(" + value[0] + ") {$(arg).after('" + append[1] + "');}"
+			for (let i = 0; i < store.length; i++) {
+				after = i + 1
+				if(type[i] == "elseif") {
+					final+= "else if (" + value[i] + ") {$(arg).after('" + append[after] + "');}" 
+				} else if(type[i] == "else") {
+					final+= "else {$(arg).after('" + append[after] + "');}"
+				}
+			}
+
+			eval(final);
+			$(arg).remove();
+
+
+	}
+	function forblock(arg) {
+			
+			$(arg).after("<div id='remove'></div>")
+			forloop = $(arg).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
+			console.log(forloop)
+			forcon = $(arg).attr("condition");
+			forloop = forloop.join('');
+			
+
+			finstr = "for (" + forcon + ") {$('#remove').append('" + forloop + "')}";
+			console.log(finstr)
+			eval(finstr);
+
+			// $("#remove").replaceWith($("#remove").contents());
+			// arg.remove()
+			
+	}
+
+	function detection() {
+		$("body if, for").each(function() {
+			if($(this).is("if")) {
+				ifblock($(this));
+			} else {
+				forblock($(this));
+			}
+		})
+	}
+
+	
+
 
 	let h = "hello";
 	let w = "world";
+
+	array = [1, 2, 3, 4];
+
 
 	</script>
 
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-
-
-	* { user-select: none; padding: 0; margin: 0;font-family: 'Poppins';}
-	.flex {
-		display: flex;
-	}
-	.center {
-		align-items: center;
-		justify-content: center;
-	}
-	body {
-		background: #121212;
-		min-height: 100vh;
-		overflow: hidden;
-	}
-
-	.page {
-		background: white;
-		width: calc(100vw - 300px);
-		height: calc(100vh - 200px);
-	}
-	.side {
-		z-index: 1;
-		background-color: #1E1E1E;
-		border: 1px solid #292929;
-		color: white;
-		width: 300px;
-		height: 450px;
-		padding: 20px;
-		position: relative;
-		top: -30px;
-		left: -30px;
-		align-items: center;
-		flex-direction: column;
-		border-radius: 10px;
-		box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.43);
-		transform: scale(1, 1);
-		transition: 0.3s;
-	}
-	.side:hover {
-		transform: scale(1.05, 1.05);
-	}
-	.side img {
-		width: 200px;
-		pointer-events: none;
-	}
-	.item {
-		background-color: #303030;
-		padding: 10px;
-		border-radius: 4px;
-		margin: 4px 0;
-	}
-
-	.item p {
-		font-size : 12px;
-	}
-
-	.items {
-		width: 100%;
-		margin: 0;
-		padding: 0;
-		overflow: scroll;
-	}
-
-	.items::-webkit-scrollbar {
-    display: none; /* for Chrome, Safari, and Opera */
-}
 	
 </style>
-
-
-
-<body class="flex center" onload="ifblock(), variable('..', 2), forblock(), draggable()">
-	<for>
-		@let i = 0; i < item.length; i++
-		<div class="item">
-			<h3>..item[' + i + ']</h3>
-			<hr>
-			<div class="flex">
-				<p>subtext</p>
-			</div>
-		</div>
-	</for>
+<body onload="detection()">
 		<if>
-			@if h == "heello"
-			<p>Kudja</p>
-			@else
-			<p>Kudja</p>
-		</if>
-	</div>
-</div>
-
+		@if h == "helo"
+		<p>True</p>
+		@else
+		<p>mdr</p>
+		<for condition="let i = 0; i < array.length; i++">
+		<p>pp</p>
+		</for>
+	</if>
+	
+	
 
 
 </body>
