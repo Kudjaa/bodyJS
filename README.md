@@ -16,9 +16,9 @@ The value of each item array that is a DOM is changed this way `$("div).append( 
 Then the `<code>` DOM is replaced by the content of the div created. 
 ## To-do list
 
-- [ ]  Make the project work for the body, not a specific block
+- [x]  Make the project work for the body, not a specific block
 - [x]  Make reference to variables in the HTML body
-- [ ]  Display loop index in the content of a DOM when the DOM is declared in a loop.
+- [x]  Display loop index in the content of a DOM when the DOM is declared in a loop.
 - [ ]  Make a VS Code extension that highlights JS code in the HTML body
 - [ ]  Rewrite it without jQuery
 ## Why ?
