@@ -9,10 +9,25 @@
 </head>
 
 <script>
-function main(p) {
-    $("code").each(function() {
 
-        base = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item)
+function variable(p) {
+		//Looking for every DOM in the body
+		$("body *").each(function() {
+			//I want to make use of variables in HTML by the prefix ".." example : <p>..str</p>
+			if($(this).text().substr(0, p.length) == p) {
+				//Removing the ".." so the only thing left is the actual name of the variable we want to use
+				str = $(this).html().slice(p.length);
+				//Replace the content of the DOM we've been checking if its content is starting by ".."
+				$(this).html(eval(str));
+			}
+		})
+	}
+
+
+
+function main(p) {
+
+        base = $("body").html().replaceAll("\t", "").split(/\r?\n/).filter(item => item)
         for (let i = 0; i < base.length; i++) {
             base[i] = base[i].replaceAll("&lt;", "<")
             while (base[i].charAt(0) == " ") {
@@ -36,29 +51,18 @@ function main(p) {
         
         for (let i = 0; i < final.length; i++) {
             if(final[i].charAt(0) == "<") {
-                final[i] = "$('#remove').append(`" + final[i] + "`)";
+                final[i] = "$('#remove').append(`" + final[i] + "`);";
             }   
         }
-        $(this).after("<div id='remove'></div>");
+        $("body").after("<div id='remove'></div>");
         streval = final.join("");
-        $(this).replaceWith($("#remove").contents())
         // streval = `$(this).after("<div id='remove'></div>");` + final.join("") + `$(this).replaceWith($("#remove").contents())`;
+        console.log(streval)
         eval(streval);
-    })
+        $('body').html($('#remove').html())
+        $("#remove").remove();
 
 
-    function variable(p) {
-		//Looking for every DOM in the body
-		$("body *").each(function() {
-			//I want to make use of variables in HTML by the prefix ".." example : <p>..str</p>
-			if($(this).text().substr(0, p.length) == p) {
-				//Removing the ".." so the only thing left is the actual name of the variable we want to use
-				str = $(this).html().slice(p.length);
-				//Replace the content of the DOM we've been checking if its content is starting by ".."
-				$(this).html(eval(str));
-			}
-		})
-	}
 
     variable(p);
         
@@ -66,6 +70,7 @@ function main(p) {
         
 }
 
+array = ["how", "are", "you"];
 h = "hello";
 w = "world"
 test = "not a test"
@@ -74,9 +79,8 @@ test = "not a test"
 
 <body onload="main('..')">
 
-    <code>
-        for(let i = 0; i < 6; i ++) {
-            <p>test is <span>..test</span></p>
+        for (let i = 0; i < array.length; i ++) {
+            <p>..array[`+i+`]</p>
         };
 
 
@@ -86,7 +90,6 @@ test = "not a test"
         <p>false</p>
     }
     <p>Here's the value of the variable "h" : <span>..h</span></p>
-    </code>
 
 
 </body>
