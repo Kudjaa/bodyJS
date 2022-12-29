@@ -1,168 +1,93 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <title>Document</title>
 </head>
 
 <script>
-	function variable(prefix, length) {
+function main(p) {
+    $("code").each(function() {
+
+        base = $(this).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item)
+        for (let i = 0; i < base.length; i++) {
+            base[i] = base[i].replaceAll("&lt;", "<")
+            while (base[i].charAt(0) == " ") {
+                base[i] = base[i].slice(1)
+            }
+            if(base[i] == "") {base.splice(i, 1)}
+        }
+        console.log(base)
+        var temp = "";
+        final = [];
+        
+        for (let i = 0; i < base.length; i++) {
+            if(base[i].charAt(0) == "<") {
+                temp+= base[i];
+            } else {
+                if(temp != "") {final.push(temp); temp = ""};
+                final.push(base[i])
+            }
+        }
+        if(temp != "") {final.push(temp); temp = ""};
+        
+        for (let i = 0; i < final.length; i++) {
+            if(final[i].charAt(0) == "<") {
+                final[i] = "$('#remove').append(`" + final[i] + "`)";
+            }   
+        }
+        $(this).after("<div id='remove'></div>");
+        streval = final.join("");
+        $(this).replaceWith($("#remove").contents())
+        // streval = `$(this).after("<div id='remove'></div>");` + final.join("") + `$(this).replaceWith($("#remove").contents())`;
+        eval(streval);
+    })
+
+
+    function variable(p) {
 		//Looking for every DOM in the body
 		$("body *").each(function() {
 			//I want to make use of variables in HTML by the prefix ".." example : <p>..str</p>
-			if($(this).text().substr(0, length) == prefix) {
+			if($(this).text().substr(0, p.length) == p) {
 				//Removing the ".." so the only thing left is the actual name of the variable we want to use
-				str = $(this).html().slice(length);
+				str = $(this).html().slice(p.length);
 				//Replace the content of the DOM we've been checking if its content is starting by ".."
 				$(this).html(eval(str));
 			}
 		})
 	}
-	function ifblock(arg) {
 
-		base = $(arg).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
-		const type = [];
-		const append = [];
-		const value = [];
-		
-		
-		
-		const store = [];
-		let current = "";
-		// Grouping multiple lines if this happens
-		for (let i = 0; i < base.length; i++) {
-			if(base[i].slice(0, 1) == "@"){
-				if(current.length) store.push(current.join(''))
-				current = [];
-				store.push(base[i]);
-			} else if (base[i].slice(0, 1) == "<") {
-				current.push(base[i])
-			}
-		}
-		// In case there's one last line stuck in the current variable, we have to push it too. And join it if needed
-		if(current != "") {
-			if (current.constructor == Array) {
-				newc = current.join('');
-			}
-			store.push(newc);
-		}
-		
+    variable(p);
+        
+        
+        
+}
+
+h = "hello";
+w = "world"
+test = "not a test"
+
+</script>
+
+<body onload="main('..')">
+
+    <code>
+        for(let i = 0; i < 6; i ++) {
+            <p>test is <span>..test</span></p>
+        };
 
 
-			//A loop for every lines
-			for (let i = 0; i < store.length; i++) {
-
-				//Detect if the line is if
-				if(store[i].slice(0, 3) == "@if") {
-					type.push("if");
-					append.push("nothing");
-					value.push(store[i].split("@if ")[1]);
-				}
-					//Detect if the line is elseif
-				else if(store[i].slice(0, 7) == "@elseif") {
-					type.push("elseif");
-					append.push("nothing");
-					value.push(store[i].split("@elseif ")[1]);
-				}
-					//Detect if the line is else
-				else if(store[i].slice(0, 5) == "@else") {
-					type.push("else");
-					append.push("nothing");
-					value.push(store[i].split("@else ")[1]);
-				}
-					//In this case the line is not a condition but the HTML line we want to append
-				else {
-					type.push("append");
-					append.push(store[i]);
-					value.push("nothing");
-				}
-			}
-
-			//Trying to know how many "elseif" there is in the <if> HTML block
-			var count = 0;
-			for (let i = 0; i < store.length; i++) {
-				if(type[i] == "elseif") {
-					count++;
-
-				}
-				
-			}
-			
-			//Putting everything together in a string
-			final = "if(" + value[0] + ") {$(arg).after('" + append[1] + "');}"
-			for (let i = 0; i < store.length; i++) {
-				after = i + 1
-				if(type[i] == "elseif") {
-					final+= "else if (" + value[i] + ") {$(arg).after('" + append[after] + "');}" 
-				} else if(type[i] == "else") {
-					final+= "else {$(arg).after('" + append[after] + "');}"
-				}
-			}
-
-			eval(final);
-			$(arg).remove();
-
-
-	}
-	function forblock(arg) {
-			
-			$(arg).after("<div id='remove'></div>")
-			forloop = $(arg).html().replaceAll("\t", "").split(/\r?\n/).filter(item => item);
-			console.log(forloop)
-			forcon = $(arg).attr("condition");
-			forloop = forloop.join('');
-			
-
-			finstr = "for (" + forcon + ") {$('#remove').append('" + forloop + "')}";
-			console.log(finstr)
-			eval(finstr);
-
-			// $("#remove").replaceWith($("#remove").contents());
-			// arg.remove()
-			
-	}
-
-	function detection() {
-		$("body if, for").each(function() {
-			if($(this).is("if")) {
-				ifblock($(this));
-			} else {
-				forblock($(this));
-			}
-		})
-	}
-
-	
-
-
-	let h = "hello";
-	let w = "world";
-
-	array = [1, 2, 3, 4];
-
-
-	</script>
-
-
-<style>
-	
-</style>
-<body onload="detection()">
-		<if>
-		@if h == "helo"
-		<p>True</p>
-		@else
-		<p>mdr</p>
-		<for condition="let i = 0; i < array.length; i++">
-		<p>pp</p>
-		</for>
-	</if>
-	
-	
+        if(h == "hello") {
+        <p>true</p>
+    }else{
+        <p>false</p>
+    }
+    <p>Here's the value of the variable "h" : <span>..h</span></p>
+    </code>
 
 
 </body>
-
 </html>
